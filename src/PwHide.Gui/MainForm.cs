@@ -105,7 +105,7 @@ internal sealed class MainForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message.Split('\n')[0], "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Loc.Tr(ex.Message.Split('\n')[0]), "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
@@ -113,7 +113,7 @@ internal sealed class MainForm : Form
     {
         if (_list.SelectedItems.Count == 0) return;
         var name = _list.SelectedItems[0].Text;
-        // 破坏性确认：默认按钮在 No（回车不会误删），与 CLI [y/N] 一致
+        // 破坏性确认：默认按钮在 No（回车不会误删）。CLI delete 无确认直接执行；GUI 主动加确认是更安全的加强
         if (MessageBox.Show(
                 L($"Delete entry \"{name}\"?", $"删除条目 {name}？"),
                 "pwhide", MessageBoxButtons.YesNo, MessageBoxIcon.Question,
@@ -129,7 +129,7 @@ internal sealed class MainForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message.Split('\n')[0], "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Loc.Tr(ex.Message.Split('\n')[0]), "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 

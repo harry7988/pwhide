@@ -41,7 +41,7 @@ internal static class Program
             catch (Exception ex)
             {
                 // 与 CLI 兜底同口径：单行消息；异常消息均为固定文案+路径/条目名，不含口令与密文
-                MessageBox.Show(ex.Message.Split('\n')[0], "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(Loc.Tr(ex.Message.Split('\n')[0]), "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
