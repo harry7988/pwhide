@@ -2,7 +2,8 @@ using PwHide.Core;
 
 namespace PwHide.Gui;
 
-/// <summary>新建条目表单：基本信息 + 自定义字段（逐字段选择加密/明文，与 CLI 语义一致）。</summary>
+/// <summary>新建条目表单：基本信息 + 自定义字段（逐字段选择加密/明文，与 CLI 语义一致）。
+/// 密码 Trim、二次确认比对、弱密码警告（默认 No）、字段去重与空值校验——全部对齐 CLI 的 set 行为。</summary>
 internal sealed class CreateEntryForm : Form
 {
     private readonly TextBox _name = new();
@@ -11,17 +12,17 @@ internal sealed class CreateEntryForm : Form
     private readonly TextBox _tenant = new();
     private readonly TextBox _pass = new() { UseSystemPasswordChar = true };
     private readonly TextBox _pass2 = new() { UseSystemPasswordChar = true };
-    private readonly CheckBox _forceWeak = new() { Text = "", AutoSize = true };
+    private readonly CheckBox _forceWeak = new() { AutoSize = true };
     private readonly DataGridView _grid = new();
-    private readonly Button _ok = new() { Text = "", DialogResult = DialogResult.OK };
-    private readonly Button _cancel = new() { Text = "", DialogResult = DialogResult.Cancel };
+    private readonly Button _ok = new() { DialogResult = DialogResult.OK };
+    private readonly Button _cancel = new() { DialogResult = DialogResult.Cancel };
 
     public string EntryName => _name.Text.Trim();
     public string? EntryType => NullIfEmpty(_type.Text.Trim());
     public string? Username => NullIfEmpty(_user.Text.Trim());
     public string? Tenant => NullIfEmpty(_tenant.Text.Trim());
-    public string Password => _pass.Text;
-    public bool ForceWeak => _forceWeak.Checked;
+    /// <summary>与 CLI 同口径：入库前清除首尾空白。</summary>
+    public string Password => _pass.Text.Trim();
 
     public readonly List<(string Name, string Value, bool Plain)> Fields = [];
 
@@ -34,9 +35,13 @@ internal sealed class CreateEntryForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10f);
         Width = 560;
-        Height = 480;
+        Height = 490;
 
-        var table = new TableLayoutPanel { Dock = DockStyle.Top, Height = 190, ColumnCount = 2, Padding = new Padding(12) };
+        _ok.Text = Loc.T("Save", "保存");
+        _cancel.Text = Loc.T("Cancel", "取消");
+        _forceWeak.Text = Loc.T("allow weak password (--force-weak)", "允许弱密码（--force-weak）");
+
+        var table = new TableLayoutPanel { Dock = DockStyle.Top, Height = 200, ColumnCount = 2, Padding = new Padding(12) };
         table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
         table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         AddRow(table, L("name", "名称"), _name);
@@ -45,8 +50,7 @@ internal sealed class CreateEntryForm : Form
         AddRow(table, L("tenant", "租户"), _tenant);
         AddRow(table, L("password", "密码"), _pass);
         AddRow(table, L("confirm", "再次确认"), _pass2);
-        _forceWeak.Text = Loc.T("allow weak password (--force-weak)", "允许弱密码（--force-weak）");
-        table.Controls.Add(_forceWeak, 1, 6);
+        table.Controls.Add(_forceWeak, 1, table.RowCount);
 
         _grid.Dock = DockStyle.Fill;
         _grid.AllowUserToAddRows = true;
@@ -61,9 +65,21 @@ internal sealed class CreateEntryForm : Form
             HeaderText = Loc.T("encrypted", "加密"),
             FillWeight = 60,
         });
+        // 新行的加密复选框默认为 true（与视觉一致：新行勾选=加密；取消勾选才存明文）
+        _grid.DefaultValuesNeeded += (_, e) => e.Row.Cells["enc"].Value = true;
 
-        var fieldPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12) };
+        var fieldLabel = new Label
+        {
+            Text = Loc.T("Custom fields (uncheck \"encrypted\" for plain fields like IP/protocol)",
+                         "自定义字段（\"加密\"取消勾选即存明文，如 IP/协议）"),
+            Dock = DockStyle.Top,
+            Height = 30,
+            Padding = new Padding(12, 8, 0, 0),
+        };
+
+        var fieldPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12, 4, 12, 12) };
         fieldPanel.Controls.Add(_grid);
+        fieldPanel.Controls.Add(fieldLabel);
 
         var bottom = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 48, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(12) };
         bottom.Controls.Add(_ok);
@@ -87,14 +103,18 @@ internal sealed class CreateEntryForm : Form
         table.RowCount++;
     }
 
-    /// <summary>OK 校验：收集字段、去重、Trim、弱密码警告。失败返回 false 并弹窗。</summary>
+    /// <summary>OK 校验：两次密码比对、字段收集/去重/空值、Trim、弱密码警告（默认 No）。失败返回并弹窗。</summary>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         if (DialogResult != DialogResult.OK) { base.OnFormClosing(e); return; }
 
         var problems = new List<string>();
-        if (EntryName.Length == 0) problems.Add(Loc.T("name is required", "名称不能为空"));
-        if (Password.Length == 0) problems.Add(Loc.T("password cannot be empty", "密码不能为空"));
+        if (EntryName.Length == 0) problems.Add(L("name is required", "名称不能为空"));
+        if (Password.Length == 0)
+            problems.Add(L("password cannot be empty (or only whitespace)",
+                           "密码不能为空（或全是空白）"));
+        else if (_pass.Text.Trim() != _pass2.Text.Trim())
+            problems.Add(L("passwords do not match", "两次输入不一致"));
 
         Fields.Clear();
         foreach (DataGridViewRow row in _grid.Rows)
@@ -102,11 +122,16 @@ internal sealed class CreateEntryForm : Form
             if (row.IsNewRow) break;
             var fname = Convert.ToString(row.Cells[0].Value)?.Trim() ?? "";
             var fval = Convert.ToString(row.Cells[1].Value)?.Trim() ?? "";
-            var enc = Convert.ToBoolean(row.Cells[2].Value ?? true);
+            var enc = row.Cells["enc"].Value is null ? true : Convert.ToBoolean(row.Cells["enc"].Value);
             if (fname.Length == 0 && fval.Length == 0) continue;
-            if (fname.Length == 0) { problems.Add(Loc.T("a field has no name", "有一个字段没有填写字段名")); continue; }
+            if (fname.Length == 0) { problems.Add(L("a field has no name", "有一个字段没有填写字段名")); continue; }
+            if (fval.Length == 0)
+            {
+                problems.Add(L($"field {fname} has an empty value", $"字段 {fname} 的值为空"));
+                continue;
+            }
             if (Fields.Any(f => f.Name == fname))
-                problems.Add(Loc.T($"duplicate field: {fname}", $"字段重复：{fname}"));
+                problems.Add(L($"duplicate field: {fname}", $"字段重复：{fname}"));
             else
                 Fields.Add((fname, fval, !enc));
         }
@@ -119,12 +144,13 @@ internal sealed class CreateEntryForm : Form
             return;
         }
 
-        // 弱密码警告（与 CLI 同一口径）：确认后继续
-        if (!ForceWeak && WeakSecret.Check(Password) is { } reason)
+        // 弱密码警告（与 CLI 同口径）：默认按钮 No（回车不会误存弱密码）
+        if (!_forceWeak.Checked && WeakSecret.Check(Password) is { } reason)
         {
             var proceed = MessageBox.Show(
-                Loc.T($"Weak password: {reason}\n\nSave anyway?", $"弱密码：{reason}\n\n仍要保存吗？"),
-                "pwhide", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                Loc.T($"Weak password: {Loc.Tr(reason)}\n\nSave anyway?", $"弱密码：{reason}\n\n仍要保存吗？"),
+                "pwhide", MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                MessageBoxDefaultButton.Button2);
             if (proceed != DialogResult.Yes) { e.Cancel = true; base.OnFormClosing(e); return; }
         }
 

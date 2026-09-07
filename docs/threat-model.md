@@ -152,3 +152,9 @@
 18. **home 整体偷换**（Linux 已用 inode 快照复核关键操作；macOS 依赖 O_NOFOLLOW+前置校验）：多用户 + NOPASSWD +
     毫秒级竞态的组合场景下，root 安装/harden 的文件操作理论上仍可被重定向到他用户 vault（跨用户完整性破坏，无
     机密性收益）——属同 UID 竞争面在多用户环境的延伸。
+
+### GUI（PwHide.Gui.exe，Windows）暴露面（0.9.0）
+
+- 主口令与条目密码在 GUI 路径为 WinForms TextBox 的托管 `System.String`：无法主动清除、GC 与换页残留，内存/交换文件/进程转储的暴露面**大于** CLI 的 byte[] 用后即清路径（§2 口径不适用于 GUI）。
+- GUI 是本地受信进程面，无新增落盘或网络路径：写操作在 `Vault.FileLock` 持锁下经 `Vault.Save` 唯一 staged 安装入口完成；界面仅显示元数据与明文字段值，密码与加密字段值永不明文展示。
+- vault 处于管理员加固时，GUI 保存因无终端 sudo 而失败（fail-closed，不降级）；写操作应在终端完成。

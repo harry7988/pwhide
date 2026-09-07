@@ -5,7 +5,7 @@
 > A password proxy CLI for AI coding tools — the AI only ever sees placeholders and redacted output; passwords never enter the conversation context.
 
 [![CI](https://github.com/harry7988/pwhide/actions/workflows/ci.yml/badge.svg)](https://github.com/harry7988/pwhide/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/badge/release-0.8.0-blue)](https://github.com/harry7988/pwhide/releases)
+[![Release](https://img.shields.io/badge/release-0.9.0-blue)](https://github.com/harry7988/pwhide/releases)
 [![License: MIT](https://github.com/harry7988/pwhide/blob/main/LICENSE)](https://github.com/harry7988/pwhide/blob/main/LICENSE)
 
 You hand AI agents real commands to run — database connections, deploys, cloud CLIs — and the password has to come from somewhere. Pasting it into the chat leaks it into logs, history, and context windows. `pwhide` offers a third path: **credentials are stored in a local encrypted vault; the AI writes commands with placeholders; pwhide decrypts, injects, executes, and redacts the password back out of any output before the AI sees it.**
@@ -15,7 +15,7 @@ AI writes:  pwhide exec -- mysql -u {{db.user}} -p{{db}} -e "SELECT 1"
 AI receives: mysql: [output] ...  (any password in the output is replaced with {{db}})
 ```
 
-**Status: v0.8.0** — 279 tests passing (140 unit + 139 integration), CI on three platforms (macOS / Ubuntu / Windows) with a Native AOT smoke test (including a real-sudo hardening flow) all green. Threat model: [docs/threat-model.en.md](docs/threat-model.en.md); milestones: [PLAN.md](PLAN.md). UI language defaults to **English**; `pwhide language zh` switches to Chinese.
+**Status: v0.9.0** — 279 tests passing (140 unit + 139 integration), CI on three platforms (macOS / Ubuntu / Windows) with a Native AOT smoke test (including a real-sudo hardening flow) all green. Threat model: [docs/threat-model.en.md](docs/threat-model.en.md); milestones: [PLAN.md](PLAN.md). UI language defaults to **English**; `pwhide language zh` switches to Chinese.
 
 ## Highlights
 
@@ -37,7 +37,7 @@ A visual walkthrough (workflow diagram, terminal sessions, the Windows-encoding 
 
 ## Windows visual GUI
 
-`pwhide` ships with a **Windows Forms GUI** (`PwHide.Gui.exe`, included in the win-x64 package): unlock with the master passphrase, then visually **list and create entries** — name/type/username/tenant, custom fields with per-field encrypt-or-plain choice, weak-password warning, and a placeholder viewer. It uses the exact same encrypted vault as the CLI (same machine, same `~/.pwhide`), so CLI and GUI stay in sync. Run `PwHide.Gui.exe` from the extracted package (or `pwhide.Gui` via `dotnet run` from source on Windows).
+`pwhide` ships with a **Windows Forms GUI** (`PwHide.Gui.exe`, included in the win-x64 package): unlock with the master passphrase, then visually **list, create and delete entries** — name/type/username/tenant, custom fields with per-field encrypt-or-plain choice, weak-password warning, and a placeholder viewer. It uses the exact same encrypted vault as the CLI (same machine, same `~/.pwhide`), so CLI and GUI stay in sync. Run `PwHide.Gui.exe` from the extracted package (or `dotnet run --project src/PwHide.Gui` from source on Windows). Boundary: the GUI manages entries only — exec, passphrase rotation, hardening and keychain stay in the CLI; with a hardened vault, do writes in a terminal.
 
 ## Quick start
 
@@ -99,7 +99,7 @@ Full threat model: [docs/threat-model.en.md](docs/threat-model.en.md) (Chinese o
 |---|---|---|
 | macOS (Apple Silicon / Intel) | osx-arm64 / osx-x64 | ✅ CI green |
 | Linux (x64 / arm64) | linux-x64 / linux-arm64 | ✅ CI green; full suite also run in a fresh root-context Docker harness (five adversarial scenarios) |
-| Windows (x64 / arm64) | win-x64 / win-arm64 | ✅ x64 CI green (pwsh tested, cmd per §7.1). Chinese console output goes through WriteConsoleW; PowerShell pipes transcode by the session console code page; `doctor --output-encoding` is the manual fallback |
+| Windows (x64 / arm64) | win-x64 / win-arm64 (GUI in win-x64 only) | ✅ x64 CI green (pwsh tested, cmd per §7.1). Chinese console output goes through WriteConsoleW; PowerShell pipes transcode by the session console code page; `doctor --output-encoding` is the manual fallback |
 
 Download from [Releases](https://github.com/harry7988/pwhide/releases) (SHA256SUMS included) or the repo's `dist/` directory.
 

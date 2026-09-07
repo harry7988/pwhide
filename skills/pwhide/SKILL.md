@@ -77,7 +77,7 @@ Ask the **user** to run the entry command themselves (hidden input):
 pwhide set <name> -t <type:database|ssh|api|cloud|custom> -u <username> -T <tenant> -f <field=value>
 ```
 
-Then show `pwhide inspect <name>` to the user to confirm metadata.
+Then show `pwhide inspect <name>` to the user to confirm metadata. On Windows, the win-x64 package also ships `PwHide.Gui.exe` - a visual alternative for entry management (same vault); mention it if the user prefers a GUI.
 
 ## Error handling
 

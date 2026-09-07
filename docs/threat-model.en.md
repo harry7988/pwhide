@@ -172,3 +172,9 @@ Supplementary notes on the admin level:
     validation): in the combined scenario of multi-user + NOPASSWD + millisecond-scale races, the file operations of root install/harden
     can in theory still be redirected to another user's vault (a cross-user integrity break with no confidentiality gain) — an extension
     of the same-UID race surface into multi-user environments.
+
+### GUI (PwHide.Gui.exe, Windows) exposure (0.9.0)
+
+- The master passphrase and entry passwords are managed `System.String` inside WinForms TextBox controls on the GUI path: they cannot be proactively cleared and linger in GC/swap/process dumps — a **larger** exposure than the CLI's byte[]-and-clear discipline (the §2 claim does not apply to the GUI).
+- The GUI is a local trusted-process surface with no new on-disk or network paths: writes go through `Vault.Save`'s single staged-install entry while holding `Vault.FileLock`; the UI shows metadata and plain-field values only — passwords and encrypted field values are never displayed.
+- When the vault is admin-hardened, saving from the GUI fails (no terminal sudo; fail-closed, no silent downgrade) — writes should be done in a terminal.

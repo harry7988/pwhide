@@ -77,7 +77,7 @@ pwhide exec --ph '@' -f deploy.sh --shell auto         # 脚本内注释密集�
 pwhide set <条目名> -t <类型:database|ssh|api|cloud|自定义> -u <账号> -T <租户> -f <字段名=值>
 ```
 
-录入后用 `pwhide inspect <条目名>` 向用户展示元数据确认。
+录入后用 `pwhide inspect <条目名>` 向用户展示元数据确认。Windows 上 win-x64 包还附带 `PwHide.Gui.exe`（可视化条目管理，同一 vault）；用户偏好图形界面时可以指路。
 
 ## 错误处理
 

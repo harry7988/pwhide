@@ -11,7 +11,7 @@
 
 > 面向 AI 编程工具的本地密码代填 CLI —— AI 只看到占位符和执行结果，密码永远不进入对话上下文。
 
-**状态：v0.8.0 已实现** —— 279 个测试全部通过（140 单元 + 139 集成），CI 三平台（macOS / Ubuntu / Windows）构建测试 + Native AOT 冒烟（含真实 sudo 的管理员级加固流程）全绿；威胁模型见 [docs/threat-model.md](docs/threat-model.md)，里程碑状态见 [PLAN.md](PLAN.md)。
+**状态：v0.9.0 已实现** —— 279 个测试全部通过（140 单元 + 139 集成），CI 三平台（macOS / Ubuntu / Windows）构建测试 + Native AOT 冒烟（含真实 sudo 的管理员级加固流程）全绿；威胁模型见 [docs/threat-model.md](docs/threat-model.md)，里程碑状态见 [PLAN.md](PLAN.md)。
 
 ## 为什么需要 pwhide
 
@@ -71,6 +71,10 @@ dotnet publish src/PwHide.Cli -c Release -r osx-arm64 /p:PublishAot=true -o publ
 ```
 
 让 AI 工具帮你部署：见 [docs/ai-deploy-guide.md](docs/ai-deploy-guide.md)。
+
+## Windows 可视化界面
+
+win-x64 压缩包内置 **`PwHide.Gui.exe`**（WinForms 窗口程序）：输入主口令解锁后，可视化地**列出、新建与删除条目**——名称/类型/账号/租户、自定义字段逐字段选择加密或明文、弱密码警告、占位符一键查看。它与 CLI 使用同一个本地加密库（同机同 `~/.pwhide`），两边实时同步。边界：GUI 只做条目管理；执行命令（exec）、更换主口令（rotate）、加固（harden）与钥匙串仍在 CLI 完成；vault 已加固时，写操作请在终端进行。
 
 ## 快速上手
 
@@ -166,7 +170,7 @@ git clone git@github.com:harry7988/pwhide.git && cd pwhide
 |---|---|---|
 | macOS (Apple Silicon / Intel) | osx-arm64 / osx-x64 | ✅ arm64 本地实测 + CI 绿 |
 | Linux (x64 / arm64) | linux-x64 / linux-arm64 | ✅ x64 CI 绿（bash/sh/pwsh） |
-| Windows (x64 / arm64) | win-x64 / win-arm64 | ✅ x64 CI 绿（pwsh 实测，cmd 按 §7.1 规则实现）；中文 cmd 控制台输出走 WriteConsoleW 直写，任何代码页（GBK/UTF-8）均不乱码；PowerShell 管道输出按会话控制台代码页自动转码；仍异常时 `pwhide doctor --output-encoding <auto\|utf8\|utf16\|gbk\|json>` 全局手工指定兜底（或环境变量 PWHIDE_OUTPUT_ENCODING；json = 非 ASCII 转义 \uXXXX，任何终端可读），`pwhide doctor` 可查看当前输出通道诊断 |
+| Windows (x64 / arm64) | win-x64 / win-arm64（GUI 仅 win-x64 包） | ✅ x64 CI 绿（pwsh 实测，cmd 按 §7.1 规则实现）；中文 cmd 控制台输出走 WriteConsoleW 直写，任何代码页（GBK/UTF-8）均不乱码；PowerShell 管道输出按会话控制台代码页自动转码；仍异常时 `pwhide doctor --output-encoding <auto\|utf8\|utf16\|gbk\|json>` 全局手工指定兜底（或环境变量 PWHIDE_OUTPUT_ENCODING；json = 非 ASCII 转义 \uXXXX，任何终端可读），`pwhide doctor` 可查看当前输出通道诊断 |
 
 ## 开发
 

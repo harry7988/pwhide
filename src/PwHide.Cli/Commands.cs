@@ -71,6 +71,9 @@ public static class Commands
         ctx.OutText.WriteLine($"已初始化：{ctx.Home}");
         ctx.OutText.WriteLine(Loc.T("next: pwhide keychain set (zero interaction) | pwhide set <name> (first credential)",
             "下一步：pwhide keychain set（免交互）| pwhide set <名>（录入第一条凭据）"));
+        if (OperatingSystem.IsWindows())
+            ctx.OutText.WriteLine(Loc.T("tip: PwHide.Gui.exe in the win-x64 package offers visual entry management",
+                "提示：win-x64 包内的 PwHide.Gui.exe 可视化管理条目"));
         ctx.OutText.WriteLine(noHarden || !OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS() && !OperatingSystem.IsWindows()
             ? "文件保护：基础模式（目录 700 / 文件 600）。可随时运行 pwhide harden 升级为管理员写保护"
             : "文件保护：基础模式（目录 700 / 文件 600）。可运行 pwhide harden 启用管理员写保护（仅整体覆盖）");
