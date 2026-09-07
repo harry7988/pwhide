@@ -101,7 +101,7 @@ Full threat model: [docs/threat-model.en.md](docs/threat-model.en.md) (Chinese o
 | Linux (x64 / arm64) | linux-x64 / linux-arm64 | ✅ CI green; full suite also run in a fresh root-context Docker harness (five adversarial scenarios) |
 | Windows (x64 / arm64) | win-x64 / win-arm64 (GUI in win-x64 only) | ✅ x64 CI green (pwsh tested, cmd per §7.1). Chinese console output goes through WriteConsoleW; PowerShell pipes transcode by the session console code page; `doctor --output-encoding` is the manual fallback |
 
-Download from [Releases](https://github.com/harry7988/pwhide/releases) (SHA256SUMS included) or the repo's `dist/` directory.
+Download from [Releases](https://github.com/harry7988/pwhide/releases) (SHA256SUMS included) or the repo's `dist/` directory. Note: `PwHide.Gui.exe` ships only in the win-x64 **zip** on Releases (self-contained, ~116MB uncompressed — over GitHub's 100MB repo file limit), not in `dist/`.
 
 ## Development
 
