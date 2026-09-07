@@ -92,6 +92,17 @@ internal sealed class CreateEntryForm : Form
         CancelButton = _cancel;
     }
 
+
+    /// <summary>与 Vault.ValidateName 同规则的前端预检（最终仍由 Core 强制），让用户在表单内即时看到问题。</summary>
+    private static bool IsValidName(string s)
+    {
+        if (s.Length is 0 or > 64) return false;
+        if (!char.IsAsciiLetterOrDigit(s[0]) && s[0] != '_') return false;
+        foreach (var c in s)
+            if (!char.IsAsciiLetterOrDigit(c) && c is not ('_' or '-')) return false;
+        return true;
+    }
+
     private static string L(string en, string zh) => Loc.T(en, zh);
 
     private static string? NullIfEmpty(string s) => s.Length == 0 ? null : s;
@@ -110,6 +121,9 @@ internal sealed class CreateEntryForm : Form
 
         var problems = new List<string>();
         if (EntryName.Length == 0) problems.Add(L("name is required", "名称不能为空"));
+        else if (!IsValidName(EntryName))
+            problems.Add(L("name: only letters/digits/underscore/hyphen, starting with a letter or digit, length 1-64 (no '.')",
+                           "名称仅允许字母/数字/下划线/连字符，以字母或数字开头，长度 1-64（不能含 '.'）"));
         if (Password.Length == 0)
             problems.Add(L("password cannot be empty (or only whitespace)",
                            "密码不能为空（或全是空白）"));
@@ -125,6 +139,9 @@ internal sealed class CreateEntryForm : Form
             var enc = row.Cells["enc"].Value is null ? true : Convert.ToBoolean(row.Cells["enc"].Value);
             if (fname.Length == 0 && fval.Length == 0) continue;
             if (fname.Length == 0) { problems.Add(L("a field has no name", "有一个字段没有填写字段名")); continue; }
+            if (!IsValidName(fname) || fname is "user" or "tenant")
+                problems.Add(L($"field {fname}: invalid name (letters/digits/_/- only, 1-64, no '.'; 'user'/'tenant' reserved)",
+                               $"字段 {fname} 名字非法（仅字母/数字/_/-，1-64，不能含 '.'；user/tenant 为保留字）"));
             if (fval.Length == 0)
             {
                 problems.Add(L($"field {fname} has an empty value", $"字段 {fname} 的值为空"));

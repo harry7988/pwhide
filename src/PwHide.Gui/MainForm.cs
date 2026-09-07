@@ -91,15 +91,17 @@ internal sealed class MainForm : Form
                 else vault.SetField(entry, fname, fval);
             }
             vault.Save();
-            // 加密字段值的弱值警告（与 CLI 同口径，非阻断，仅提示一次）
+            // 加密字段值的弱值警告（与 CLI 同口径，非阻断）：锁内只收集，锁释放后再弹，
+            // 避免模态弹窗期间持有 FileLock 阻塞并发 CLI 写
+            var weakFieldWarnings = new List<(string Name, string Reason)>();
             foreach (var (fname, fval, plain) in form.Fields)
-            {
                 if (!plain && WeakSecret.Check(fval) is { } reason)
-                    MessageBox.Show(
-                        Loc.T($"Warning: encrypted field {fname}: {Loc.Tr(reason)} (may collide with normal output when injected)", $"警告：加密字段 {fname}：{reason}（作为密文注入时可能与正常输出碰撞）"),
-                        "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+                    weakFieldWarnings.Add((fname, reason));
             Reload();
+            foreach (var (wname, wreason) in weakFieldWarnings)
+                MessageBox.Show(
+                    Loc.T($"Warning: encrypted field {wname}: {Loc.Tr(wreason)} (may collide with normal output when injected)", $"警告：加密字段 {wname}：{wreason}（作为密文注入时可能与正常输出碰撞）"),
+                    "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         catch (Exception ex)
         {
