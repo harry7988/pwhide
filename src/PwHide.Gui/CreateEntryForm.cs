@@ -139,6 +139,7 @@ internal sealed class CreateEntryForm : Form
         if (problems.Count > 0)
         {
             e.Cancel = true;
+            DialogResult = DialogResult.None;   // 防止之后点 X 关闭时按 OK 重走校验/弱密码确认
             MessageBox.Show(string.Join("\n", problems), "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             base.OnFormClosing(e);
             return;
@@ -151,7 +152,7 @@ internal sealed class CreateEntryForm : Form
                 Loc.T($"Weak password: {Loc.Tr(reason)}\n\nSave anyway?", $"弱密码：{reason}\n\n仍要保存吗？"),
                 "pwhide", MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
                 MessageBoxDefaultButton.Button2);
-            if (proceed != DialogResult.Yes) { e.Cancel = true; base.OnFormClosing(e); return; }
+            if (proceed != DialogResult.Yes) { e.Cancel = true; DialogResult = DialogResult.None; base.OnFormClosing(e); return; }
         }
 
         base.OnFormClosing(e);

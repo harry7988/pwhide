@@ -91,6 +91,14 @@ internal sealed class MainForm : Form
                 else vault.SetField(entry, fname, fval);
             }
             vault.Save();
+            // 加密字段值的弱值警告（与 CLI 同口径，非阻断，仅提示一次）
+            foreach (var (fname, fval, plain) in form.Fields)
+            {
+                if (!plain && WeakSecret.Check(fval) is { } reason)
+                    MessageBox.Show(
+                        Loc.T($"Warning: encrypted field {fname}: {Loc.Tr(reason)} (may collide with normal output when injected)", $"警告：加密字段 {fname}：{reason}（作为密文注入时可能与正常输出碰撞）"),
+                        "pwhide", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
             Reload();
         }
         catch (Exception ex)
