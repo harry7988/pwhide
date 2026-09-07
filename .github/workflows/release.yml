@@ -33,12 +33,19 @@ jobs:
       - name: Publish Native AOT
         shell: bash
         run: dotnet publish src/PwHide.Cli -c Release -r ${{ matrix.rid }} -p:PublishAot=true -o publish
+      - name: Publish GUI (Windows x64)
+        if: matrix.rid == 'win-x64'
+        shell: bash
+        run: dotnet publish src/PwHide.Gui -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish-gui
         # 注意：此步骤为 bash，-p: 形式避免 Windows 上 MSYS 把 /p: 当 POSIX 路径转换
       - name: Pack
         shell: bash
         run: |
           cd publish
-          if [[ "${{ matrix.rid }}" == win-* ]]; then
+          if [[ "${{ matrix.rid }}" == "win-x64" && -f ../publish-gui/PwHide.Gui.exe ]]; then
+            cp ../publish-gui/PwHide.Gui.exe .
+            7z a "../pwhide-${{ matrix.rid }}.zip" pwhide.exe PwHide.Gui.exe
+          elif [[ "${{ matrix.rid }}" == win-* ]]; then
             7z a "../pwhide-${{ matrix.rid }}.zip" pwhide.exe
           else
             tar czf "../pwhide-${{ matrix.rid }}.tar.gz" pwhide
@@ -69,6 +76,7 @@ jobs:
           TAG="${GITHUB_REF#refs/tags/}"
           cat > release-notes.md <<'EOF'
           Native AOT 单文件二进制（macOS arm64/x64、Linux x64/arm64、Windows x64/arm64）。
+          Windows 版压缩包含可视化界面 PwHide.Gui.exe（创建/列出条目，与 CLI 共用同一加密库）。
 
           ## 安装
           1. 下载对应平台压缩包，校验：`shasum -a 256 --check SHA256SUMS --ignore-missing`

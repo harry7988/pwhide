@@ -24,6 +24,10 @@ After the three steps, the AI's world contains only `{{placeholders}}` and redac
 
 **AI-side setup** (once): put the visibility contract and placeholder rules into the project's `AGENTS.md`, or install the bundled skill: `skills/pwhide/install.sh`.
 
+## Windows visual GUI (optional)
+
+The win-x64 package contains `PwHide.Gui.exe`: unlock with the master passphrase to **list all entries** (name/type/username/tenant/fields) and **create entries** via a form (password + confirm, per-field encrypt-or-plain, weak-password warning, one-click placeholder view). It shares the same encrypted vault as the CLI — entries created in the GUI are immediately usable with `pwhide exec`, and vice versa.
+
 ## Three execution modes (safest last)
 
 1. **script-stdin (recommended)**: `pwhide exec -f deploy.sh` — placeholders in the script; substitution purely in memory; secrets in neither argv nor environ.

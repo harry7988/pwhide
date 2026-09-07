@@ -35,6 +35,10 @@ AI receives: mysql: [output] ...  (any password in the output is replaced with {
 
 A visual walkthrough (workflow diagram, terminal sessions, the Windows-encoding before/after, and the byte-level encoding verification report) lives at [docs/guide.en.md](docs/guide.en.md) and on the website: www.pwhide.com → **Guide**. 中文版：[docs/guide.zh-CN.md](docs/guide.zh-CN.md)。
 
+## Windows visual GUI
+
+`pwhide` ships with a **Windows Forms GUI** (`PwHide.Gui.exe`, included in the win-x64 package): unlock with the master passphrase, then visually **list and create entries** — name/type/username/tenant, custom fields with per-field encrypt-or-plain choice, weak-password warning, and a placeholder viewer. It uses the exact same encrypted vault as the CLI (same machine, same `~/.pwhide`), so CLI and GUI stay in sync. Run `PwHide.Gui.exe` from the extracted package (or `pwhide.Gui` via `dotnet run` from source on Windows).
+
 ## Quick start
 
 ```bash

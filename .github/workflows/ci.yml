@@ -22,6 +22,8 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - run: dotnet build -c Debug
+      - name: Build GUI (WinForms, cross-build)
+        run: dotnet build src/PwHide.Gui -c Debug
       - name: Test
         shell: bash
         run: dotnet test --no-build -c Debug 2>&1 | tee test.log; exit ${PIPESTATUS[0]}
