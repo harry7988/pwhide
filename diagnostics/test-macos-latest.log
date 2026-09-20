@@ -1,0 +1,44 @@
+Test run for /Users/runner/work/pwhide/pwhide/tests/PwHide.IntegrationTests/bin/Debug/net10.0/PwHide.IntegrationTests.dll (.NETCoreApp,Version=v10.0)
+Test run for /Users/runner/work/pwhide/pwhide/tests/PwHide.Core.Tests/bin/Debug/net10.0/PwHide.Core.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   140, Skipped:     0, Total:   140, Duration: 15 s - PwHide.Core.Tests.dll (net10.0)
+[xUnit.net 00:00:15.98]     PwHide.IntegrationTests.LanguageTests.DefaultEnglish_UsageBlock_Translated [FAIL]
+  Failed PwHide.IntegrationTests.LanguageTests.DefaultEnglish_UsageBlock_Translated [1 ms]
+  Error Message:
+   en 模式输出仍含中文：pwhide - local password proxy executor (secrets go into processes, never onto your terminal)
+
+pwhide init [--no-harden]                 initialize the vault (set master passphrase)
+pwhide set <name> [-t type] [-u user] [-T tenant] [-f field=value]... [-pf plain-field=value]... [--password-stdin]
+                                        create/update an entry (hidden password input)
+pwhide list [--json]                      list entry metadata (no secret values)
+pwhide inspect <name> [--json] [--verify]  metadata and placeholders; --verify human check (decrypted display)
+pwhide delete <name> / rename <old> <new>  manage entries
+pwhide exec [options] -- <cmd...>         fill + execute + redact
+pwhide exec [选项] -f <脚本> | -f -        脚本 stdin 模式（-f - 从管道读脚本；不落盘）
+pwhide rotate                             rotate the identity key pair
+pwhide verify <name>                      human check: decrypted password/fields (terminal, typed passphrase)
+pwhide keychain set|clear|status          store the passphrase in the OS keychain (then exec needs no passphrase)
+UI language (English default; PWHIDE_LANG overrides)
+pwhide harden / doctor / version
+pwhide doctor --output-encoding <auto|utf8|utf16|gbk|json>
+                                        globally force the output encoding (mojibake fallback)
+
+exec options: --shell auto|bash|sh|pwsh|cmd|none  --env entry:ENVVAR (repeatable)
+           --timeout seconds (default 120)  --allow-echo (allow echo-probe)  --home <dir>
+           --ph #|@ (placeholder delimiters, default {{name}}; prefer @ in scripts with # comments)
+           --verify (pre-exec human check: interactive terminal, typed passphrase, decrypted values shown)
+every command supports -h / --help for details (e.g. pwhide exec -h);
+pwhide help <command> is equivalent.
+environment: PWHIDE_HOME / PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE / PWHIDE_OUTPUT_ENCODING / PWHIDE_NO_KEYCHAIN
+
+  Stack Trace:
+     at PwHide.IntegrationTests.LanguageTests.AssertNoCjk(String[] texts) in /Users/runner/work/pwhide/pwhide/tests/PwHide.IntegrationTests/LanguageTests.cs:line 44
+   at PwHide.IntegrationTests.LanguageTests.DefaultEnglish_UsageBlock_Translated() in /Users/runner/work/pwhide/pwhide/tests/PwHide.IntegrationTests/LanguageTests.cs:line 72
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Failed!  - Failed:     1, Passed:   145, Skipped:     0, Total:   146, Duration: 47 s - PwHide.IntegrationTests.dll (net10.0)
