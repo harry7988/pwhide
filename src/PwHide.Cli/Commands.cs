@@ -36,9 +36,6 @@ public static class Commands
         // 仅真实 CLI（InIsStd）判定：测试注入 reader 模拟交互终端
         if (ctx.InIsStd && Console.IsInputRedirected)
             throw new VaultException("stdin 正被管道/文件占用（文件流转发场景）。无法交互输入主口令：请配置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE 或先运行 pwhide keychain set");
-
-        if (Console.IsInputRedirected)
-            throw new UsageException("stdin 被重定向时无法进行交互口令输入：请设置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE，或先运行 pwhide keychain set");
         using var hidden = HiddenInput.Begin(ctx.In, ctx.Interactive);   // 先隐藏后提示：消除提示符与 stty 生效间的回显竞态
         ctx.ErrText.Write("主口令: ");
         var first = HiddenInput.ReadLine(hidden, ctx.In);

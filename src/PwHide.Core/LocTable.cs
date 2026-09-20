@@ -248,6 +248,9 @@ public static partial class Loc
 "-f 需要 <脚本路径> 或 -（从 stdin 读脚本）||-f requires <script path> or - (read the script from stdin)",
 "stdin 正被管道/文件占用（文件流转发场景）。无法交互输入主口令：请配置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE 或先运行 pwhide keychain set||stdin is occupied by a pipe/file (stream forwarding). Cannot prompt for the master passphrase interactively: set PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE, or run pwhide keychain set first",
 "*pwhide exec [选项] -f <脚本> | -f -        脚本 stdin 模式（-f - 从管道读脚本；不落盘）||*pwhide exec [options] -f <script> | -f -   script-stdin mode (-f - reads the script from a pipe; nothing hits disk)",
+"检测到 stdin 被重定向但未指定 --password-stdin：请改用 pwhide set <名> --password-stdin < 密码文件（交互隐藏输入需要真实终端）||stdin is redirected but --password-stdin is not set: use `pwhide set <name> --password-stdin < pw-file` instead (hidden interactive input requires a real terminal)",
+"*stdin 正被管道/文件占用，无法交互输入字段 *：请改用 -f *=<值>||*stdin is occupied by a pipe/file; cannot interactively read field *: use `-f *=<value>` instead",
+"stdin 正被管道/文件占用，无法交互输入主口令：请改用 PWHIDE_PASSPHRASE=<主口令> pwhide keychain set||stdin is occupied by a pipe/file; cannot prompt for the master passphrase: use `PWHIDE_PASSPHRASE=<master> pwhide keychain set` instead",
         // ---------- language 命令（自身消息在 Commands 内用 Loc.T 双语直出） ----------
     ];
 
