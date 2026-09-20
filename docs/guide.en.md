@@ -37,7 +37,7 @@ cat data.sql | pwhide exec -- mysql -u {{db.user}} -p{{db}} --tee out.sql
 # binary-safe output: byte-level pass-through (redaction still scans the stream)
 pwhide exec -- gzip -c access.log > access.log.gz
 
-# script from a pipe: -f - reads the script from stdin
+# script from a pipe: -f - reads the script from stdin (add --allow-echo if the script echoes progress alongside a secret placeholder)
 cat deploy.sh | pwhide exec -f - --shell bash
 ```
 

@@ -144,23 +144,20 @@ public class StreamForwardTests : IDisposable
     public void PipeWithSecret_NoPassphraseSource_FailsCleanly()
     {
         if (!Unix) return;
-        // stdin 被管道占用 + 无口令来源：明确报错（不把管道数据当口令吃掉）
-        using var stdout = new MemoryStream();
-        using var stderr = new MemoryStream();
-        var prevKeychain = Keychain.HookIsSupported;
-        var prevTryGet = Keychain.HookTryGet;
-        Keychain.HookIsSupported = () => false;
-        Keychain.HookTryGet = _ => null;
-        try
-        {
-            var exit = CliRunner.Run(["--home", F.Home, "exec", "--allow-echo", "--", "/bin/true", "{{db}}"],
-                stdout, stderr, new StringReader("piped-data"), interactive: true);
-            Assert.Equal(ExitCodes.Vault, exit);
-            var text = new UTF8Encoding(false).GetString(stderr.ToArray());
-            Assert.Contains("keychain set", text);   // 指引
-            Assert.DoesNotContain("piped-data", text);
-        }
-        finally { Keychain.HookIsSupported = prevKeychain; Keychain.HookTryGet = prevTryGet; }
+        // 真实子进程（stdin=EOF 管道）：无口令来源时明确报错（不把管道数据当口令吃掉）。
+        // 不用进程内 CliRunner——它无法控制 Console.IsInputRedirected，测试会依赖宿主 stdin 状态。
+        var psi = new System.Diagnostics.ProcessStartInfo("/bin/sh") { RedirectStandardOutput = true, RedirectStandardError = true };
+        psi.Environment.Remove("PWHIDE_PASSPHRASE");
+        psi.Environment["PWHIDE_NO_KEYCHAIN"] = "1";
+        psi.ArgumentList.Add("-c");
+        psi.ArgumentList.Add($"printf piped-data | dotnet \"{TestBin}\" --home \"{F.Home}\" exec --allow-echo -- /bin/true {{{{db}}}} < /dev/null");
+        using var sh = System.Diagnostics.Process.Start(psi)!;
+        var errTask = sh.StandardError.ReadToEndAsync();
+        sh.WaitForExit(30_000);
+        var err = errTask.Result;
+        Assert.Equal(3, sh.ExitCode);
+        Assert.Contains("keychain set", err);
+        Assert.DoesNotContain("piped-data", err);
     }
 
     [Fact]

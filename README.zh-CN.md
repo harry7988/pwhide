@@ -34,6 +34,7 @@ AI 收到：mysql: [输出] ...（若输出中出现密码，已被替换为 {{d
 - **系统钥匙串零交互**：`pwhide keychain set` 把主口令存入 macOS Keychain / Windows 凭据管理器 / Linux Secret Service（先验证口令能解锁 vault 才入库），之后 `exec` 等全部命令自动取用，AI 调用不再需要口令；`keychain clear` 撤销，`PWHIDE_NO_KEYCHAIN=1` 临时跳过。
 - **可切换占位符定界符**：默认 `{{name}}`；`exec --ph '#'` 切换为 `#name#`（`--ph '@'` → `@name@`），规避与 Helm/Jinja/Go template 等模板语法的 `{{` 转义冲突。切换后解析、脱敏、回显探测语义完全一致。
 - **弱密码与探测防护**：录入时拦截"密码=常见语句"（会误替换日志、且替换位置会暴露密码内容，`--force-weak` 可覆盖）；`exec` 拒绝回显探测命令（echo/printf 与占位符在同一次调用中共现，`--allow-echo` 放行）；单次输出替换超过 32 次会告警提示换强密码。
+- **文件流转发（管道）**：`cat data.sql | pwhide exec -- mysql -u {{db.user}} -p{{db}} …` stdin 逐字节转发给子进程；输出二进制安全（`pwhide exec -- gzip -c 文件 > out.gz` 可用）且照常过脱敏。`cat deploy.sh | pwhide exec -f - --shell bash` 从管道读脚本。stdin 被管道占用时主口令须来自钥匙串/环境变量/口令文件——pwhide 会明确报错指路而不是吞掉数据。
 - **三种执行模式**（安全性递增）：args 内联（兼容）→ 环境变量注入（`ps` 不可见，但 Linux 祖先进程可经 /proc/<pid>/environ 读到）→ 脚本 stdin（推荐：唯一同时避开 argv 与 environ 的模式，不落盘不进 argv）。
 - **包装四种 shell**：bash / sh / pwsh / cmd，跨平台自动探测或显式指定。
 - **扩展条目模型**：账号类型、账号、租户、自定义字段 —— 元数据可查（AI 组装命令用），密码与字段值不可查。

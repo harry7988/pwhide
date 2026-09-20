@@ -32,8 +32,9 @@ public static class Commands
 
         if (!ctx.Interactive)
             throw new VaultException("非交互环境需要解锁：请设置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE，或先运行 pwhide keychain set 存入系统钥匙串");
-        // stdin 被重定向（管道/文件，exec 文件流转发场景）：交互提示会吞掉管道数据当口令——拒绝并指路
-        if (Console.IsInputRedirected)
+        // stdin 被重定向（管道/文件，exec 文件流转发场景）：交互提示会吞掉管道数据当口令——拒绝并指路。
+        // 仅真实 CLI（InIsStd）判定：测试注入 reader 模拟交互终端
+        if (ctx.InIsStd && Console.IsInputRedirected)
             throw new VaultException("stdin 正被管道/文件占用（文件流转发场景）。无法交互输入主口令：请配置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE 或先运行 pwhide keychain set");
 
         if (Console.IsInputRedirected)
@@ -129,6 +130,10 @@ public static class Commands
             password = password.Trim();
             if (password.Length == 0) throw new UsageException("--password-stdin：未从 stdin 读到密码（或内容全是空白）");
         }
+        else if (ctx.InIsStd && Console.IsInputRedirected)
+            // 真实 CLI 的 interactive 恒为 true，此守卫必须先于交互分支：否则提示会把管道数据当密码吃掉。
+            // ctx.InIsStd：测试注入 TextReader 时不按进程级 stdin 状态判定（模型化的是交互终端）
+            throw new UsageException("检测到 stdin 被重定向但未指定 --password-stdin：请改用 pwhide set <名> --password-stdin < 密码文件（交互隐藏输入需要真实终端）");
         else if (ctx.Interactive)
         {
             using var hidden = HiddenInput.Begin(ctx.In, ctx.Interactive);   // 先隐藏后提示
@@ -139,8 +144,6 @@ public static class Commands
             if (HiddenInput.ReadLine(hidden, ctx.In).Trim() != password)
                 throw new VaultException("两次输入不一致");
         }
-        else if (Console.IsInputRedirected)
-            throw new UsageException("检测到 stdin 被重定向但未指定 --password-stdin：请改用 pwhide set <名> --password-stdin < 密码文件（交互隐藏输入需要真实终端）");
         else throw new UsageException("非交互环境请使用 --password-stdin 从 stdin 提供密码（禁止命令行明文传密码）");
 
         if (password.Length == 0)
@@ -160,6 +163,8 @@ public static class Commands
         {
             string value;
             if (fvalue is not null) value = fvalue;
+            else if (ctx.InIsStd && Console.IsInputRedirected)
+                throw new UsageException($"stdin 正被管道/文件占用，无法交互输入字段 {fname}：请改用 -f {fname}=<值>");
             else if (ctx.Interactive)
             {
                 using var hidden = HiddenInput.Begin(ctx.In, ctx.Interactive);
@@ -173,8 +178,8 @@ public static class Commands
             // stdin 被重定向（AI/脚本场景，无人应答）时跳过询问：-f 一律加密（安全默认，
             //  防止 EOF 空回答静默把字段降级为明文；要明文请显式 -pf）
             var encrypt = plainFlag ? false : true;
-            if (!plainFlag && ctx.Interactive)
-            {
+            if (!plainFlag && ctx.Interactive && !(ctx.InIsStd && Console.IsInputRedirected))
+            {   // stdin 被管道占用（AI/脚本）时跳过询问：无人应答，走 EOF 安全默认（一律加密）
                 var sensitive = LooksSensitive(fname);
                 ctx.ErrText.Write($"字段 {fname} 是否敏感、需要加密存储？[{(sensitive ? "Y/n" : "y/N")}] ");
                 var ans = (ctx.In.ReadLine() ?? "").Trim().ToLowerInvariant();
@@ -704,6 +709,8 @@ public static class Commands
                 }
                 else
                 {
+                    if (ctx.InIsStd && Console.IsInputRedirected)
+                        throw new VaultException("stdin 正被管道/文件占用，无法交互输入主口令：请改用 PWHIDE_PASSPHRASE=<主口令> pwhide keychain set");
                     if (!ctx.Interactive)
                         throw new VaultException("非交互环境请用 PWHIDE_PASSPHRASE=<主口令> pwhide keychain set 完成一次配置");
                     using var hidden = HiddenInput.Begin(ctx.In, ctx.Interactive);

@@ -225,7 +225,7 @@ usage: pwhide exec [options] -- <command...>
 options:
   --shell auto|bash|sh|pwsh|cmd|none    shell to wrap with (default auto)
   --env <entry>:<ENVVAR>                inject the password as env var (repeatable)
-  -f | --file <script>                  script-stdin mode (recommended; no argv/environ)
+  -f | --file <script | ->              script-stdin mode (recommended; - = read the script from stdin)
   --timeout <seconds>                   kill the process tree on timeout (default 120)
   --ph | --placeholder <#|@>            switch delimiters: #name# / @name@
   --allow-echo                          allow echo/printf co-occurring with secrets
@@ -267,7 +267,7 @@ examples:
 选项：
   --shell auto|bash|sh|pwsh|cmd|none    包装的 shell（默认 auto）
   --env <条目>:<环境变量>                将密码注入环境变量（可重复）
-  -f | --file <脚本>                      脚本 stdin 模式（推荐；不进 argv/environ）
+  -f | --file <脚本 | ->                  脚本 stdin 模式（推荐；- 表示从 stdin 读脚本）
   --timeout <秒>                         超时杀进程树（默认 120）
   --ph | --placeholder <#|@>             切换定界符：#名# / @名@
   --allow-echo                           放行 echo/printf 与密文共现

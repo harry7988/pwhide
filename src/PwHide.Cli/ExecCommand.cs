@@ -70,6 +70,8 @@ public static partial class ExecCommand
                     break;
                 case "-f" or "--file":
                     if (++i >= args.Length) throw new UsageException("-f 需要 <脚本路径> 或 -（从 stdin 读脚本）");
+                    if (scriptPath is not null || scriptStdin)
+                        throw new UsageException("-f 只能指定一次（当前实现后者静默胜出，已改为显式拒绝）");
                     if (args[i] == "-")
                     {
                         // 脚本从 stdin（cat deploy.sh | pwhide exec -f -）：一次读入，与文件模式同一 TOCTOU 语义。
@@ -108,7 +110,9 @@ public static partial class ExecCommand
         if (scriptPath is not null)
             scriptText = File.ReadAllText(scriptPath);
         else if (scriptStdin)
-            scriptText = ctx.In.ReadToEnd();   // stdin 一次读完（真实 CLI 中 ctx.In 即 Console.In；二进制内容走命令模式）
+            // stdin 一次读完（真实 CLI 中 ctx.In 即 Console.In；二进制内容走命令模式）。
+            // File.ReadAllText 会剥 UTF-8 BOM，这里对齐——否则 BOM 粘在首命令上（sh: command not found）
+            scriptText = ctx.In.ReadToEnd().TrimStart('\uFEFF');
 
         // 1) 先收集全部占位符（含 env 注入隐式引用的密码），I2：未知即拒跑，子进程不会启动
         var texts = new List<string>();
@@ -207,7 +211,7 @@ public static partial class ExecCommand
 
         // shell 元字符警告（非阻断）：密文含引号/美元/反引号/反斜杠时，经嵌套 shell 或脚本模式会被
         // 二级解析成变体/碎片，字节精确脱敏对变体失配 → 建议改用 --env 注入（值不经 shell 解析，免疫）
-        var viaShell = shell is not "none" || scriptPath is not null;
+        var viaShell = shell is not "none" || scriptPath is not null || scriptStdin;
         var hasInlineSecret = refs.Any(r => NeedsSecret(vault, r) && !envSpecs.Any(e => e.Entry == r.Entry));
         if (viaShell && hasInlineSecret)
         {
