@@ -247,6 +247,7 @@ public static partial class Loc
 "缺少要执行的命令（pwhide exec [--] <命令…>、-f <脚本> 或 -f -（stdin 脚本））||missing command (pwhide exec [--] <cmd...>, -f <script>, or -f - for a stdin script)",
 "-f 需要 <脚本路径> 或 -（从 stdin 读脚本）||-f requires <script path> or - (read the script from stdin)",
 "stdin 正被管道/文件占用（文件流转发场景）。无法交互输入主口令：请配置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE 或先运行 pwhide keychain set||stdin is occupied by a pipe/file (stream forwarding). Cannot prompt for the master passphrase interactively: set PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE, or run pwhide keychain set first",
+"*pwhide exec [选项] -f <脚本> | -f -        脚本 stdin 模式（-f - 从管道读脚本；不落盘）||*pwhide exec [options] -f <script> | -f -   script-stdin mode (-f - reads the script from a pipe; nothing hits disk)",
         // ---------- language 命令（自身消息在 Commands 内用 Loc.T 双语直出） ----------
     ];
 
