@@ -28,6 +28,21 @@ After the three steps, the AI's world contains only `{{placeholders}}` and redac
 
 The win-x64 package contains `PwHide.Gui.exe`: unlock with the master passphrase to **list all entries** (name/type/username/tenant/fields) and **create entries** via a form (password + confirm, per-field encrypt-or-plain, weak-password warning, one-click placeholder view). It shares the same encrypted vault as the CLI — entries created in the GUI are immediately usable with `pwhide exec`, and vice versa.
 
+## Stream forwarding (pipes)
+
+```bash
+# stdin pipe: the child reads your data byte-for-byte (passphrase must come from keychain/env/file)
+cat data.sql | pwhide exec -- mysql -u {{db.user}} -p{{db}} --tee out.sql
+
+# binary-safe output: byte-level pass-through (redaction still scans the stream)
+pwhide exec -- gzip -c access.log > access.log.gz
+
+# script from a pipe: -f - reads the script from stdin
+cat deploy.sh | pwhide exec -f - --shell bash
+```
+
+Note: with stdin occupied by a pipe, the master passphrase cannot be typed interactively (a prompt would consume the pipe) - pwhide fails fast with guidance toward keychain/env/passphrase-file instead of silently eating your data.
+
 ## Three execution modes (safest last)
 
 1. **script-stdin (recommended)**: `pwhide exec -f deploy.sh` — placeholders in the script; substitution purely in memory; secrets in neither argv nor environ.

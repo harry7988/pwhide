@@ -56,6 +56,8 @@ pwhide exec --env db-local:MYSQL_PWD -- mysql -u {{db-local.user}} -e "SELECT 1"
 pwhide exec -- mysql -u {{db-local.user}} -p{{db-local}} -e "SELECT 1"
 ```
 
+文件流转发：管道可用——`cat data.sql | pwhide exec -- mysql -u {{db.user}} -p{{db}} …` 把 stdin 逐字节转发给子进程（双向二进制安全）；`cat deploy.sh | pwhide exec -f - --shell bash` 从管道读脚本。管道场景需确保口令来自钥匙串/环境变量/文件（无法交互输入）。
+
 常用选项：`--shell auto|bash|sh|pwsh|cmd|none`、`--env NAME:VAR`（可重复）、`--timeout 秒`（默认 120）。
 
 ### 与模板语法冲突时：切换占位符定界符

@@ -56,6 +56,8 @@ pwhide exec --env db-local:MYSQL_PWD -- mysql -u {{db-local.user}} -e "SELECT 1"
 pwhide exec -- mysql -u {{db-local.user}} -p{{db-local}} -e "SELECT 1"
 ```
 
+Stream forwarding: pipes work - `cat data.sql | pwhide exec -- mysql -u {{db.user}} -p{{db}} ...` forwards stdin to the child (binary-safe both directions); `cat deploy.sh | pwhide exec -f - --shell bash` reads the script from a pipe. When piping, ensure the passphrase comes from keychain/env/file (an interactive prompt cannot run).
+
 Common options: `--shell auto|bash|sh|pwsh|cmd|none`, `--env NAME:VAR` (repeatable), `--timeout seconds` (default 120).
 
 ### Template syntax conflicts: switch delimiters

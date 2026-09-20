@@ -145,7 +145,7 @@ public static class CliRunner
             pwhide inspect <名> [--json] [--verify]    元数据与占位符；--verify 人工核验（解密显示）
             pwhide delete <名> / rename <旧> <新>     管理条目
             pwhide exec [选项] -- <命令…>             填充+执行+脱敏
-            pwhide exec [选项] -f <脚本>              脚本 stdin 模式（不落盘）
+            pwhide exec [选项] -f <脚本> | -f -        脚本 stdin 模式（-f - 从管道读脚本；不落盘）
             pwhide rotate                             更换身份密钥对
             pwhide verify <名>                        人工核验：解密显示密码/字段（需终端手输主口令）
             pwhide keychain set|clear|status          主口令存入系统钥匙串（配置后 exec 零交互）

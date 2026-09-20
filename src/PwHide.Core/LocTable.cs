@@ -244,6 +244,9 @@ public static partial class Loc
 "*pwhide help <命令> 同效。||*pwhide help <command> is equivalent.",
         "*pwhide language en|zh                     界面语言（默认英文；PWHIDE_LANG 可覆盖）||*UI language (English default; PWHIDE_LANG overrides)",
         "*pwhide keychain set|clear|status          主口令存入系统钥匙串（配置后 exec 零交互）||*pwhide keychain set|clear|status          store the passphrase in the OS keychain (then exec needs no passphrase)",
+"缺少要执行的命令（pwhide exec [--] <命令…>、-f <脚本> 或 -f -（stdin 脚本））||missing command (pwhide exec [--] <cmd...>, -f <script>, or -f - for a stdin script)",
+"-f 需要 <脚本路径> 或 -（从 stdin 读脚本）||-f requires <script path> or - (read the script from stdin)",
+"stdin 正被管道/文件占用（文件流转发场景）。无法交互输入主口令：请配置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE 或先运行 pwhide keychain set||stdin is occupied by a pipe/file (stream forwarding). Cannot prompt for the master passphrase interactively: set PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE, or run pwhide keychain set first",
         // ---------- language 命令（自身消息在 Commands 内用 Loc.T 双语直出） ----------
     ];
 

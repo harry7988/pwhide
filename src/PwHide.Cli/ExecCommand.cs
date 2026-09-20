@@ -16,6 +16,7 @@ public static partial class ExecCommand
     public static int Run(CliContext ctx, string[] args)
     {
         string? shell = null, scriptPath = null, scriptText = null, phSymbol = null;
+        var scriptStdin = false;
         int? timeout = null;
         var envSpecs = new List<(string Entry, string Var)>();
         var cmd = new List<string>();
@@ -68,7 +69,14 @@ public static partial class ExecCommand
                     envSpecs.Add((spec[..colon], envVar));
                     break;
                 case "-f" or "--file":
-                    if (++i >= args.Length) throw new UsageException("-f 需要 <脚本路径>");
+                    if (++i >= args.Length) throw new UsageException("-f 需要 <脚本路径> 或 -（从 stdin 读脚本）");
+                    if (args[i] == "-")
+                    {
+                        // 脚本从 stdin（cat deploy.sh | pwhide exec -f -）：一次读入，与文件模式同一 TOCTOU 语义。
+                        // stdin 已被脚本占用，主口令必须来自 keychain/env/文件（交互提示会吃掉脚本内容）
+                        scriptStdin = true;
+                        break;
+                    }
                     scriptPath = args[i];
                     if (!File.Exists(scriptPath)) throw new UsageException($"脚本不存在：{scriptPath}");
                     break;
@@ -82,9 +90,9 @@ public static partial class ExecCommand
             }
         }
 
-        if (scriptPath is null && cmd.Count == 0)
-            throw new UsageException("缺少要执行的命令（pwhide exec [--] <命令…> 或 -f <脚本>）");
-        if (scriptPath is not null && cmd.Count > 0)
+        if (scriptPath is null && !scriptStdin && cmd.Count == 0)
+            throw new UsageException("缺少要执行的命令（pwhide exec [--] <命令…>、-f <脚本> 或 -f -（stdin 脚本））");
+        if ((scriptPath is not null || scriptStdin) && cmd.Count > 0)
             throw new UsageException("不能同时指定 -f 脚本与命令参数（多余部分会被忽略，已拒绝）");
 
         // --verify 的终端硬校验必须最先执行：非交互/重定向环境下一律拒绝，先于回显探测等一切后续检查
@@ -99,6 +107,8 @@ public static partial class ExecCommand
         // 脚本只读一次：校验/探测与执行使用同一份内容，消除"检查后文件被改写"的 TOCTOU
         if (scriptPath is not null)
             scriptText = File.ReadAllText(scriptPath);
+        else if (scriptStdin)
+            scriptText = ctx.In.ReadToEnd();   // stdin 一次读完（真实 CLI 中 ctx.In 即 Console.In；二进制内容走命令模式）
 
         // 1) 先收集全部占位符（含 env 注入隐式引用的密码），I2：未知即拒跑，子进程不会启动
         var texts = new List<string>();
@@ -183,7 +193,7 @@ public static partial class ExecCommand
         var request = new ExecRequest
         {
             Args = cmd,
-            ScriptPath = scriptPath,
+            ScriptPath = scriptPath ?? (scriptStdin ? "<stdin>" : null),
             ScriptText = scriptText,
             Shell = shell ?? vault.Config.DefaultShell,
             EnvInject = envInject,

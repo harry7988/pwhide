@@ -28,6 +28,21 @@
 
 win-x64 压缩包里有 `PwHide.Gui.exe`：输入主口令解锁后，可以在窗口里**列出全部条目**（名称/类型/账号/租户/字段），并通过表单**新建条目**（密码二次确认、自定义字段逐个选择加密或明文、弱密码警告、占位符一键查看）。它和 CLI 共用同一份加密库——GUI 里创建的条目，命令行 `pwhide exec` 立即可用，反之亦然。
 
+## 文件流转发（管道）
+
+```bash
+# stdin 管道：子进程逐字节读到你的数据（口令须来自钥匙串/env/文件）
+cat data.sql | pwhide exec -- mysql -u {{db.user}} -p{{db}} --tee out.sql
+
+# 输出二进制安全：字节级透传（输出流照常脱敏扫描）
+pwhide exec -- gzip -c access.log > access.log.gz
+
+# 脚本来自管道：-f - 从 stdin 读脚本
+cat deploy.sh | pwhide exec -f - --shell bash
+```
+
+注意：stdin 被管道占用时无法交互输入主口令（提示会吃掉管道数据）——pwhide 会直接报错并指路 keychain/env/口令文件，而非静默吞数据。
+
 ## 三种执行模式（安全性递增）
 
 1. **脚本 stdin（推荐）**：`pwhide exec -f deploy.sh` —— 脚本里写占位符，替换只在内存发生，密码不进 argv 也不进环境变量；

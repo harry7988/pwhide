@@ -32,6 +32,9 @@ public static class Commands
 
         if (!ctx.Interactive)
             throw new VaultException("非交互环境需要解锁：请设置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE，或先运行 pwhide keychain set 存入系统钥匙串");
+        // stdin 被重定向（管道/文件，exec 文件流转发场景）：交互提示会吞掉管道数据当口令——拒绝并指路
+        if (Console.IsInputRedirected)
+            throw new VaultException("stdin 正被管道/文件占用（文件流转发场景）。无法交互输入主口令：请配置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE 或先运行 pwhide keychain set");
 
         if (Console.IsInputRedirected)
             throw new UsageException("stdin 被重定向时无法进行交互口令输入：请设置 PWHIDE_PASSPHRASE / PWHIDE_PASSPHRASE_FILE，或先运行 pwhide keychain set");

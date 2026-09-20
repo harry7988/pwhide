@@ -238,6 +238,16 @@ notes:
   env injection next; inline args are briefly visible to `ps`.
   template clash (Helm/Jinja {{ }})? use --ph '#' and write #name#.
 
+stream forwarding (pipes are binary-safe):
+  stdin:  cat data.sql | pwhide exec -- mysql -u {{db.user}} -p{{db}} ...
+          (the child reads your piped data; the master passphrase must
+           come from keychain/env/PWHIDE_PASSPHRASE_FILE - a prompt would
+           consume the pipe - pwhide fails fast with guidance instead)
+  stdout: pwhide exec -- gzip -c file > out.gz
+          (byte-level pass-through; redaction scans the stream)
+  script from stdin: cat deploy.sh | pwhide exec -f - --shell bash
+          (stdin carries the script itself in this mode)
+
 examples:
   pwhide exec -- mysql -u {{db.user}} -p{{db}} -e "SELECT 1"
   pwhide exec --env db:MYSQL_PWD -- mysql -u root -e "SELECT 1"
@@ -269,6 +279,15 @@ examples:
   推荐：脚本 stdin（密码不进 argv 与 environ）；其次环境变量注入；
   args 内联会被 ps 短暂可见。与 Helm/Jinja 的 {{ }} 冲突？用 --ph '#'
   改写 #名#。
+
+文件流转发（管道二进制安全）：
+  stdin：  cat data.sql | pwhide exec -- mysql -u {{db.user}} -p{{db}} …
+           （子进程读到管道数据；主口令须来自钥匙串/环境变量/口令文件——
+             交互提示会吃掉管道，pwhide 会明确报错指路而非吞数据）
+  stdout： pwhide exec -- gzip -c 文件 > out.gz
+           （字节级透传；输出流照常被脱敏扫描）
+  stdin 脚本： cat deploy.sh | pwhide exec -f - --shell bash
+           （此模式下 stdin 承载脚本本身）
 
 示例：
   pwhide exec -- mysql -u {{db.user}} -p{{db}} -e "SELECT 1"

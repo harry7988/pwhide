@@ -77,17 +77,90 @@ jobs:
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           cat > release-notes.md <<'EOF'
-          Native AOT 单文件二进制（macOS arm64/x64、Linux x64/arm64、Windows x64/arm64）。
-          win-x64 包额外含可视化界面 PwHide.Gui.exe（列出/新建/删除条目，与 CLI 共用同一加密库；win-arm64 包为纯 CLI）。
+          # pwhide — 发布说明
 
-          ## 安装
-          1. 下载对应平台压缩包，校验：`shasum -a 256 --check SHA256SUMS --ignore-missing`
-          2. 解压后放入 PATH（如 /usr/local/bin）
-          3. AI 部署 runbook：docs/ai-deploy-guide.md；AI Skill 安装：skills/pwhide/install.sh
+          > 面向 AI 编程工具的本地密码代填 CLI：AI 只看到占位符和执行结果，密码永远不进入对话上下文。
 
-          ## 快速上手
-          pwhide init → pwhide set db -t database -u root -T prod → pwhide exec -- mysql -u {{db.user}} -p{{db}} …
-          （密码只在加密库与子进程间流动，永不进入 AI 对话上下文）
+          ## 📦 产物与平台对照
+
+          | 平台 | 架构 | 文件名 | 含 GUI？ |
+          |---|---|---|---|
+          | macOS | Apple Silicon | `pwhide-osx-arm64.tar.gz` | ❌ 仅 CLI |
+          | macOS | Intel | `pwhide-osx-x64.tar.gz` | ❌ 仅 CLI |
+          | Linux | x64 | `pwhide-linux-x64.tar.gz` | ❌ 仅 CLI |
+          | Linux | arm64 | `pwhide-linux-arm64.tar.gz` | ❌ 仅 CLI |
+          | **Windows** | **x64** | **`pwhide-win-x64.zip`** | ✅ **含 `PwHide.Gui.exe`** |
+          | Windows | arm64 | `pwhide-win-arm64.zip` | ❌ 仅 CLI |
+
+          > **关于 GUI（Windows 用户必读）**
+          > - 可视化界面 **仅随 `pwhide-win-x64.zip` 分发，无需单独下载** —— 解压后直接运行 `PwHide.Gui.exe` 即可。
+          > - `win-arm64` 包、以及 macOS/Linux 所有包均为 **纯 CLI**，不含 GUI。
+          > - GUI 与 CLI 共用同一加密库和同一 `~/.pwhide` vault，两者数据实时同步。
+          > - GUI 只管理条目（列出/新建/删除），`exec` / `rotate` / `harden` / `keychain` 等仍由 CLI 提供。
+
+          ## ✅ 校验（防篡改）
+
+          下载后校验 SHA256，确保产物完整未被篡改：
+
+          ```sh
+          cd dist
+          shasum -a 256 --check SHA256SUMS --ignore-missing
+          ```
+
+          `SHA256SUMS` 包含本次发布所有产物的哈希值。
+
+          ## 🚀 安装
+
+          1. 下载对应平台的压缩包（见上表）
+          2. 解压，把 `pwhide`（Windows 上是 `pwhide.exe`，可选 `PwHide.Gui.exe`）放入 `PATH`：
+             - macOS/Linux：`cp pwhide /usr/local/bin/`
+             - Windows：解压到 `C:\Users\<你>\AppData\Local\pwhide\` 并添加到 PATH
+          3. （可选）AI 部署 runbook：docs/ai-deploy-guide.md；AI Skill 安装：skills/pwhide/install.sh
+
+          ## 📋 快速上手
+
+          ```sh
+          # 1. 初始化（设置主口令）
+          pwhide init
+
+          # 2. （推荐）管理员级写保护：vault 只能整体覆盖
+          pwhide harden
+
+          # 3. 录入一条凭据（人操作，隐藏输入）
+          pwhide set db -t database -u root -T prod -f host=127.0.0.1
+
+          # 4. 列出可用凭据（仅元数据，无密码）
+          pwhide list --json
+
+          # 5. 代理执行；AI 只写占位符
+          pwhide exec -- mysql -u {{db.user}} -p{{db}} -e "SELECT 1"
+          ```
+
+          密码只在加密库与子进程之间流动，**永不进入 AI 对话上下文、终端回显、日志或 shell history**。
+
+          ## 🖥️ Windows GUI（可选）
+
+          `PwHide.Gui.exe` 是一个 Windows Forms 界面，适合不想记命令的场景：
+
+          - 用主口令解锁后，**可视化列出、新建、删除条目**
+          - 支持 name / type / username / tenant + 自定义字段，每字段可选加密或明文
+          - 弱密码警告、占位符查看器
+          - 与 CLI 共用同一 vault（同一台机器、同一 `~/.pwhide`），CLI 和 GUI 数据实时同步
+
+          **边界**：GUI 只管条目管理，`exec`、口令轮换、加固、keychain 等仍由 CLI 提供。如果 vault 已加固，写操作请在终端用 CLI 完成。
+
+          ## ⚠️ 已知限制
+
+          - **内联参数模式**（`pwhide exec -- mysql -u root -p{{db}}`）下，密码在子进程运行期间 `ps` 短暂可见。推荐优先使用 **env 注入**（`--env`）或 **脚本 stdin**（`-f`）模式。
+          - **Windows `cmd.exe`** 的引号规则是已知深坑，推荐优先使用 PowerShell（`pwsh`）。
+          - **macOS Gatekeeper**：首次运行可能被拦截，执行 `xattr -d com.apple.quarantine pwhide` 即可。
+
+          ## 📚 更多文档
+
+          - 完整威胁模型：docs/threat-model.en.md（中文：docs/threat-model.md）
+          - 图文指南：docs/guide.en.md（中文：docs/guide.zh-CN.md）
+          - 网站：www.pwhide.com
+          - 许可证：MIT
           EOF
           sed -i 's/^          //' release-notes.md
           echo "TAG=$TAG"; ls dist
