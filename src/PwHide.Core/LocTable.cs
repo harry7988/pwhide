@@ -251,6 +251,7 @@ public static partial class Loc
 "检测到 stdin 被重定向但未指定 --password-stdin：请改用 pwhide set <名> --password-stdin < 密码文件（交互隐藏输入需要真实终端）||stdin is redirected but --password-stdin is not set: use `pwhide set <name> --password-stdin < pw-file` instead (hidden interactive input requires a real terminal)",
 "*stdin 正被管道/文件占用，无法交互输入字段 *：请改用 -f *=<值>||*stdin is occupied by a pipe/file; cannot interactively read field *: use `-f *=<value>` instead",
 "stdin 正被管道/文件占用，无法交互输入主口令：请改用 PWHIDE_PASSPHRASE=<主口令> pwhide keychain set||stdin is occupied by a pipe/file; cannot prompt for the master passphrase: use `PWHIDE_PASSPHRASE=<master> pwhide keychain set` instead",
+        "-f 只能指定一次||-f can only be specified once",
         // ---------- language 命令（自身消息在 Commands 内用 Loc.T 双语直出） ----------
     ];
 

@@ -11,7 +11,7 @@
 
 > 面向 AI 编程工具的本地密码代填 CLI —— AI 只看到占位符和执行结果，密码永远不进入对话上下文。
 
-**状态：v0.9.0 已实现** —— 279 个测试全部通过（140 单元 + 139 集成），CI 三平台（macOS / Ubuntu / Windows）构建测试 + Native AOT 冒烟（含真实 sudo 的管理员级加固流程）全绿；威胁模型见 [docs/threat-model.md](docs/threat-model.md)，里程碑状态见 [PLAN.md](PLAN.md)。
+**状态：v0.10.0 已实现** —— 286 个测试全部通过（140 单元 + 146 集成），CI 三平台（macOS / Ubuntu / Windows）构建测试 + Native AOT 冒烟（含真实 sudo 的管理员级加固流程）全绿；威胁模型见 [docs/threat-model.md](docs/threat-model.md)，里程碑状态见 [PLAN.md](PLAN.md)。
 
 ## 为什么需要 pwhide
 
@@ -179,7 +179,7 @@ git clone git@github.com:harry7988/pwhide.git && cd pwhide
 
 ```bash
 dotnet build
-dotnet test          # 279 个测试：单元（加密/vault/占位符/脱敏/执行引擎/加固/弱密码/探测）+ 集成（CLI 全链路）
+dotnet test          # 286 个测试：单元（加密/vault/占位符/脱敏/执行引擎/加固/弱密码/探测）+ 集成（CLI 全链路）
 dotnet publish src/PwHide.Cli -c Release -r osx-arm64 /p:PublishAot=true -o publish
 ```
 

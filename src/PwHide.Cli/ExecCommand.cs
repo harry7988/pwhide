@@ -71,7 +71,7 @@ public static partial class ExecCommand
                 case "-f" or "--file":
                     if (++i >= args.Length) throw new UsageException("-f 需要 <脚本路径> 或 -（从 stdin 读脚本）");
                     if (scriptPath is not null || scriptStdin)
-                        throw new UsageException("-f 只能指定一次（当前实现后者静默胜出，已改为显式拒绝）");
+                        throw new UsageException("-f 只能指定一次");
                     if (args[i] == "-")
                     {
                         // 脚本从 stdin（cat deploy.sh | pwhide exec -f -）：一次读入，与文件模式同一 TOCTOU 语义。

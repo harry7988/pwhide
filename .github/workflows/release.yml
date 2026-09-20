@@ -117,6 +117,12 @@ jobs:
              - Windows：解压到 `C:\Users\<你>\AppData\Local\pwhide\` 并添加到 PATH
           3. （可选）AI 部署 runbook：docs/ai-deploy-guide.md；AI Skill 安装：skills/pwhide/install.sh
 
+          ## 🆕 0.10.0 变更
+
+          - **文件流转发（管道）**：stdin 逐字节转发给子进程（`cat data.sql | pwhide exec -- mysql ...`）；输出二进制安全（`gzip -c` 可用）且规则激活时照常脱敏；`-f -` 从管道读脚本（`cat deploy.sh | pwhide exec -f - --shell bash`）。
+          - **stdin 占用守卫**：stdin 被管道/文件占用且无口令来源时明确报错指路（keychain/env/口令文件），不再把管道数据当口令吞掉。**注意：该场景退出码由 2 调整为 3**（归入口令错误类）；`set` 密码提示遇管道仍为 2（指引 `--password-stdin`）。
+          - 管道数据不替换占位符（占位符只在 argv/脚本中替换）；不要把密码管道进来 —— 密码的注入路径是占位符。
+
           ## 📋 快速上手
 
           ```sh
